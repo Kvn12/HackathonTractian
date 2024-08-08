@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Pesquisa</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        .container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .result-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .search-results, .list-container {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Pesquisar Dados</h2>
+        <form id="searchForm">
+            <div class="form-group">
+                <label for="searchQuery">Digite o termo de pesquisa:</label>
+                <input type="text" id="searchQuery" class="form-control" placeholder="Digite aqui" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Pesquisar</button>
+        </form>
+
+        <div id="searchResults" class="mt-4 search-results">
+            <!-- Resultados da pesquisa serão exibidos aqui -->
+        </div>
+
+        <h3 class="mt-4">Opções Cadastradas</h3>
+        <div id="listContainer" class="list-container">
+            <!-- Lista de opções será exibida aqui -->
+        </div>
+
+        <button class="btn btn-success mt-4" data-toggle="modal" data-target="#addModal">Adicionar Novo</button>
+    </div>
+
+    <!-- Modal para adicionar novos dados -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addModalLabel">Adicionar Novo Dado</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="/" method="post" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="title">Título:</label>
+                            <input id="title" name="title" type="text" class="form-control" placeholder="Digite o título" required>
+                        </div>
+            
+                        <div class="form-group">
+                            <label for="model_type">Tipo de Modelo:</label>
+                            <select id="model_type" name="model_type" class="form-control" required>
+                                <option value="modelA">Modelo A</option>
+                                <option value="modelB">Modelo B</option>
+                                <option value="modelC">Modelo C</option>
+                            </select>
+                        </div>
+
+                        <div id="name" class="form-group">
+                            <label for="file">Imagens (máx: 3)</label>
+                            <input multiple type="file" class="form-control-file" id="file" name="file">
+                        </div>
+
+                        <!-- Campo de texto grande para informações adicionais -->
+                        <div class="form-group">
+                            <label for="additional_info">Informações Adicionais:</label>
+                            <textarea id="additional_info" name="additional_info" class="form-control" rows="5" placeholder="Digite informações adicionais aqui..."></textarea>
+                        </div>
+            
+                        <button type="submit" class="btn-primary" id="botao">Gerar Ficha Técnica</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function updateList() {
+            const listContainer = $('#listContainer');
+            listContainer.empty();
+
+            $.ajax({
+                url: '/get_data', // The Flask endpoint to fetch data
+                type: 'GET',
+                success: function(data) {
+                    names = []
+                    data.forEach(item => {
+                        if (!names.includes(item.nome)) {
+                            listContainer.append(`
+                                <div class="result-item">
+                                    <button class="btn btn-info btn-block" onclick="window.location.href='/ficha_tecnica/${item.id}'">
+                                        <strong>Nome:</strong> ${item.nome} <br>
+                                        <strong>Modelo:</strong> ${item.model}
+                                    </button>
+                                </div>
+                            `);
+                        }
+                        names.push(item.nome)
+                    });
+                },
+                error: function() {
+                    listContainer.append('<div class="result-item">Failed to load data</div>');
+                }
+            });
+        }
+        $('#searchForm').on('submit', function(e) {
+            e.preventDefault();
+            const query = $('#searchQuery').val().toLowerCase();
+            $.ajax({
+                url: '/get_search_data', // The Flask endpoint to fetch data
+                type: 'GET',
+                data: { query: query },
+                success: function(results) {
+                    const resultContainer = $('#searchResults');
+                    resultContainer.empty();
+                    console.log(results)
+                    names = []
+                    if (results.length > 0) {
+                        results.forEach(item => {
+                            if (!names.includes(item.nome)) {
+                                resultContainer.append(`
+                                    <div class="result-item">
+                                    <button class="btn btn-info btn-block" onclick="window.location.href='/ficha_tecnica/${item.id}'">
+                                        <strong>Nome:</strong> ${item.nome} <br>
+                                        <strong>Modelo:</strong> ${item.model}
+                                    </button>
+                                    </div>
+                                `);
+                                
+                                names.push(item.nome)
+                            }
+                        });
+                    } else {
+                        resultContainer.append('<p>Nenhum resultado encontrado.</p>');
+                    }
+
+                },
+                error: function() {
+                    listContainer.append('<div class="result-item">Failed to load data</div>');
+                }
+            });            
+            
+        });
+
+        $('#addForm').on('submit', function(e) {
+            e.preventDefault();
+            const newName = $('#newName').val();
+            const newNum = $('#newNum').val();
+            
+            data.push({ nome: newName, num: newNum });
+            updateList();
+            
+            $('#addModal').modal('hide');
+            $('#addForm')[0].reset();
+        });
+        $(document).ready(function() {
+            // Initial call to populate the list
+            updateList();
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                updateList();
+            }
+        });
+
+    </script>
+</body>
+</html>

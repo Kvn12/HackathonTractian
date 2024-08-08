@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Técnica da Máquina</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        .ficha-container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .ficha-item {
+            margin-bottom: 10px;
+        }
+        .ficha-item strong {
+            display: inline-block;
+            width: 150px;
+        }
+        .image-gallery img {
+            max-width: 100%;
+            height: auto;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ficha-container">
+        <h2>Ficha Técnica da Máquina</h2>
+        <div class="ficha-item"><strong>NOME:</strong> {{ ficha['NOME'] }}</div>
+        <div class="ficha-item"><strong>TIPO:</strong> {{ ficha['TIPO'] }}</div>
+        <div class="ficha-item"><strong>FABRICANTE:</strong> {{ ficha['FABRICANTE'] }}</div>
+        <div class="ficha-item"><strong>MODELO:</strong> {{ ficha['MODELO'] }}</div>
+        <div class="ficha-item"><strong>IDENTIFICAÇÃO:</strong> {{ ficha['IDENTIFICAÇÃO'] }}</div>
+        <div class="ficha-item"><strong>LOCALIZAÇÃO:</strong> {{ ficha['LOCALIZAÇÃO'] }}</div>
+
+        <h3>Especificações Técnicas</h3>
+        <div class="ficha-item"><strong>POTÊNCIA:</strong> {{ ficha['ESPECIFICACOES_TECNICAS']['POTÊNCIA'] }}</div>
+        <div class="ficha-item"><strong>TENSÃO:</strong> {{ ficha['ESPECIFICACOES_TECNICAS']['TENSÃO'] }}</div>
+        <div class="ficha-item"><strong>FREQUÊNCIA:</strong> {{ ficha['ESPECIFICACOES_TECNICAS']['FREQUÊNCIA'] }}</div>
+        <div class="ficha-item"><strong>ROTAÇÃO:</strong> {{ ficha['ESPECIFICACOES_TECNICAS']['ROTAÇÃO'] }}</div>
+        <div class="ficha-item"><strong>GRAU DE PROTEÇÃO:</strong> {{ ficha['ESPECIFICACOES_TECNICAS']['GRAU_DE_PROTEÇÃO'] }}</div>
+        <div class="ficha-item"><strong>EFICIÊNCIA:</strong> {{ ficha['ESPECIFICACOES_TECNICAS']['EFICIÊNCIA'] }}</div>
+
+        <div class="mt-4">
+            {% for image in ficha['IMAGENS'] %}
+                <img src="{{ url_for('image', image_id=image.id) }}" alt="{{ image.filename }}" class="img-fluid" style="margin-bottom: 10px;">
+            {% endfor %}
+        </div>
+
+        <!-- Botão de Voltar -->
+        <div class="back-button">
+            <button class="btn btn-secondary" onclick="window.history.back()">Voltar</button>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+        });
+    </script>
+</body>
+</html>

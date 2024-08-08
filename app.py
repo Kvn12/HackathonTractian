@@ -35,7 +35,7 @@ def gerar_ficha_tecnica(obs, image_datas):
             "content": [
             {
                 "type" : "text",
-                "text": "preencha a ficha tecnica do modelo correspondente em formato json, traduzido em portugues, caso não seja possivel determinar preencher com desconhecido. A ficha consiste nas seguintes perguntas: Nome: modelo do motor; Fabricante: empresa que fabrica estes modelos; Tipo: Baseado em seu modelo de funcionamento, por exemplo TriFásico; Identificação: Número encontrado na imagem ou no json; Potência: Potência que o motor consome ;Frequência: frequencia de giro do motor apresentada nas imagens ou passada na pesquisa do usuario, o padrão brasileiro é 60Hz; Tensão:tensão, medida em volts, de funcionamento do motor por padrão nesse ramo no brasil são 330v/660v; Rotação: Estimativa da velocidade de giro em rpm do motor; Grau de proteção: especificado em alguma foto do maquinário, é apresentado como um codigo;Eficiencia: apresentado em alguma foto do maquinario como um valor percentual; Estado Atual da maquina: baseado nas imagens e no sensor avaliar o quão danificada se apresenta a maquina para possivelmente evitar acidentes."
+                "text": "preencha a ficha tecnica do modelo correspondente em formato json, traduzido em portugues, caso não seja possivel determinar preencher com desconhecido. A ficha consiste nas seguintes perguntas: Nome: modelo do motor; Fabricante: empresa que fabrica estes modelos; Tipo: Baseado em seu modelo de funcionamento, por exemplo TriFásico; Identificação: Número encontrado na imagem ou no json; Potência: Potência que o motor consome ;Frequência: frequencia de giro do motor apresentada nas imagens ou passada na pesquisa do usuario, o padrão brasileiro é 60Hz; Tensão:tensão, medida em volts, de funcionamento do motor por padrão nesse ramo no brasil são 330v/660v; Rotação: Estimativa da velocidade de giro em rpm do motor; Grau de proteção: especificado em alguma foto do maquinário, é apresentado como um codigo;Eficiência: apresentado em alguma foto do maquinario como um valor percentual; Estado Atual da Maquina: baseado nas imagens e no sensor avaliar o quão danificada se apresenta a maquina para possivelmente evitar acidentes."
 
             },
             
@@ -119,7 +119,7 @@ def index():
                 "ROTAÇÃO": ficha_tecnica["Rotação"],
                 "GRAU_DE_PROTEÇÃO": ficha_tecnica["Grau de proteção"],
                 "EFICIÊNCIA": ficha_tecnica["Eficiência"],
-                "ESTADO ATUAL": ficha_tecnica["Estado Atual da maquina"]
+                "ESTADO ATUAL": ficha_tecnica["Estado Atual da Maquina"]
             }
         }
 
@@ -137,26 +137,44 @@ def ficha_tecnica(item_id):
         image_datas.append(img.data)
 
     ficha_tecnica = gerar_ficha_tecnica(images[0].obs, image_datas)
-    ficha_tecnica = json.loads(ficha_tecnica[7:-3])
-    print(ficha_tecnica)
-    
+    try:
+        ficha_tecnica = json.loads(ficha_tecnica[7:-3])
+        print(ficha_tecnica)
+        
 
-    ficha_tecnica = {
-        "NOME": item.title,
-        "TIPO": item.model_type,
-        "IMAGENS": images,
-        "FABRICANTE": ficha_tecnica["Fabricante"],
-        "IDENTIFICAÇÃO": ficha_tecnica["Identificação"],
-        "ESPECIFICACOES_TECNICAS": {
-            "POTÊNCIA": ficha_tecnica["Potência"],
-            "TENSÃO": ficha_tecnica["Tensão"],
-            "FREQUÊNCIA": ficha_tecnica["Frequência"],
-            "ROTAÇÃO": ficha_tecnica["Rotação"],
-            "GRAU_DE_PROTEÇÃO": ficha_tecnica["Grau de proteção"],
-            "EFICIÊNCIA": ficha_tecnica["Eficiência"],
-            "ESTADO ATUAL": ficha_tecnica["Estado Atual da maquina"]
+        ficha_tecnica = {
+            "NOME": item.title,
+            "TIPO": item.model_type,
+            "IMAGENS": images,
+            "FABRICANTE": ficha_tecnica["Fabricante"],
+            "IDENTIFICAÇÃO": ficha_tecnica["Identificação"],
+            "ESPECIFICACOES_TECNICAS": {
+                "POTÊNCIA": ficha_tecnica["Potência"],
+                "TENSÃO": ficha_tecnica["Tensão"],
+                "FREQUÊNCIA": ficha_tecnica["Frequência"],
+                "ROTAÇÃO": ficha_tecnica["Rotação"],
+                "GRAU_DE_PROTEÇÃO": ficha_tecnica["Grau de proteção"],
+                "EFICIÊNCIA": ficha_tecnica["Eficiência"],
+                "ESTADO ATUAL": ficha_tecnica["Estado Atual da Maquina"]
+            }
         }
-    }
+    except:
+        ficha_tecnica = {
+            "NOME": item.title,
+            "TIPO": item.model_type,
+            "IMAGENS": images,
+            "FABRICANTE": "desconhecido (tente recarregar a página)",
+            "IDENTIFICAÇÃO": "desconhecido (tente recarregar a página)",
+            "ESPECIFICACOES_TECNICAS": {
+                "POTÊNCIA": "desconhecido (tente recarregar a página)",
+                "TENSÃO": "desconhecido (tente recarregar a página)",
+                "FREQUÊNCIA": "desconhecido (tente recarregar a página)",
+                "ROTAÇÃO": "desconhecido (tente recarregar a página)",
+                "GRAU_DE_PROTEÇÃO": "desconhecido (tente recarregar a página)",
+                "EFICIÊNCIA": "desconhecido (tente recarregar a página)",
+                "ESTADO ATUAL": "desconhecido (tente recarregar a página)"
+            }
+        }
 
     return render_template('ficha_tecnica.html', ficha=ficha_tecnica)
 

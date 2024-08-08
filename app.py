@@ -100,29 +100,71 @@ def index():
         for file in request.files.getlist('file'):
             image_datas.append(upload_file(file, title, model_type, obs))
 
-        ficha_tecnica = gerar_ficha_tecnica(obs, image_datas)
-        ficha_tecnica = json.loads(ficha_tecnica[7:-3])
 
         # Fetching the images related to the current title and model_type
         images = ImageModel.query.filter_by(title=title, model_type=model_type).all()
 
-        ficha_tecnica = {
-            "NOME": title,
-            "TIPO": model_type,
-            "IMAGENS": images,
-            "FABRICANTE": ficha_tecnica["Fabricante"],
-            "IDENTIFICAÇÃO": ficha_tecnica["Identificação"],
-            "ESPECIFICACOES_TECNICAS": {
-                "POTÊNCIA": ficha_tecnica["Potência"],
-                "TENSÃO": ficha_tecnica["Tensão"],
-                "FREQUÊNCIA": ficha_tecnica["Frequência"],
-                "ROTAÇÃO": ficha_tecnica["Rotação"],
-                "GRAU_DE_PROTEÇÃO": ficha_tecnica["Grau de proteção"],
-                "EFICIÊNCIA": ficha_tecnica["Eficiência"],
-                "ESTADO ATUAL": ficha_tecnica["Estado Atual da Maquina"]
-            }
-        }
 
+        ficha_tecnica = gerar_ficha_tecnica(obs, image_datas)
+        ficha_tecnica = json.loads(ficha_tecnica[7:-3])
+        ficha_tecnica = {
+                "NOME": title,
+                "TIPO": model_type,
+                "IMAGENS": images,
+                "FABRICANTE": "desconhecido (tente recarregar a página)",
+                "IDENTIFICAÇÃO": "desconhecido (tente recarregar a página)",
+                "ESPECIFICACOES_TECNICAS": {
+                    "POTÊNCIA": "desconhecido (tente recarregar a página)",
+                    "TENSÃO": "desconhecido (tente recarregar a página)",
+                    "FREQUÊNCIA": "desconhecido (tente recarregar a página)",
+                    "ROTAÇÃO": "desconhecido (tente recarregar a página)",
+                    "GRAU_DE_PROTEÇÃO": "desconhecido (tente recarregar a página)",
+                    "EFICIÊNCIA": "desconhecido (tente recarregar a página)",
+                    "ESTADO ATUAL": "desconhecido (tente recarregar a página)"
+                }
+            }
+
+    for _ in range(3):
+        ficha_tecnica = gerar_ficha_tecnica(obs, image_datas)
+        try:
+            ficha_tecnica = json.loads(ficha_tecnica[7:-3])
+            print(ficha_tecnica)
+            
+
+            ficha_tecnica = {
+                "NOME": item.title,
+                "TIPO": item.model_type,
+                "IMAGENS": images,
+                "FABRICANTE": ficha_tecnica["Fabricante"],
+                "IDENTIFICAÇÃO": ficha_tecnica["Identificação"],
+                "ESPECIFICACOES_TECNICAS": {
+                    "POTÊNCIA": ficha_tecnica["Potência"],
+                    "TENSÃO": ficha_tecnica["Tensão"],
+                    "FREQUÊNCIA": ficha_tecnica["Frequência"],
+                    "ROTAÇÃO": ficha_tecnica["Rotação"],
+                    "GRAU_DE_PROTEÇÃO": ficha_tecnica["Grau de proteção"],
+                    "EFICIÊNCIA": ficha_tecnica["Eficiência"],
+                    "ESTADO ATUAL": ficha_tecnica["Estado Atual da Maquina"]
+                }
+            }
+            break
+        except:
+            ficha_tecnica = {
+                "NOME": item.title,
+                "TIPO": item.model_type,
+                "IMAGENS": images,
+                "FABRICANTE": "desconhecido (tente recarregar a página)",
+                "IDENTIFICAÇÃO": "desconhecido (tente recarregar a página)",
+                "ESPECIFICACOES_TECNICAS": {
+                    "POTÊNCIA": "desconhecido (tente recarregar a página)",
+                    "TENSÃO": "desconhecido (tente recarregar a página)",
+                    "FREQUÊNCIA": "desconhecido (tente recarregar a página)",
+                    "ROTAÇÃO": "desconhecido (tente recarregar a página)",
+                    "GRAU_DE_PROTEÇÃO": "desconhecido (tente recarregar a página)",
+                    "EFICIÊNCIA": "desconhecido (tente recarregar a página)",
+                    "ESTADO ATUAL": "desconhecido (tente recarregar a página)"
+                }
+            }
         return render_template('ficha_tecnica.html', ficha=ficha_tecnica)
 
     return render_template('index.html')
@@ -136,45 +178,64 @@ def ficha_tecnica(item_id):
     for img in images:
         image_datas.append(img.data)
 
-    ficha_tecnica = gerar_ficha_tecnica(images[0].obs, image_datas)
-    try:
-        ficha_tecnica = json.loads(ficha_tecnica[7:-3])
-        print(ficha_tecnica)
-        
+    ficha_tecnica = {
+                "NOME": item.title,
+                "TIPO": item.model_type,
+                "IMAGENS": images,
+                "FABRICANTE": "desconhecido (tente recarregar a página)",
+                "IDENTIFICAÇÃO": "desconhecido (tente recarregar a página)",
+                "ESPECIFICACOES_TECNICAS": {
+                    "POTÊNCIA": "desconhecido (tente recarregar a página)",
+                    "TENSÃO": "desconhecido (tente recarregar a página)",
+                    "FREQUÊNCIA": "desconhecido (tente recarregar a página)",
+                    "ROTAÇÃO": "desconhecido (tente recarregar a página)",
+                    "GRAU_DE_PROTEÇÃO": "desconhecido (tente recarregar a página)",
+                    "EFICIÊNCIA": "desconhecido (tente recarregar a página)",
+                    "ESTADO ATUAL": "desconhecido (tente recarregar a página)"
+                }
+            }
 
-        ficha_tecnica = {
-            "NOME": item.title,
-            "TIPO": item.model_type,
-            "IMAGENS": images,
-            "FABRICANTE": ficha_tecnica["Fabricante"],
-            "IDENTIFICAÇÃO": ficha_tecnica["Identificação"],
-            "ESPECIFICACOES_TECNICAS": {
-                "POTÊNCIA": ficha_tecnica["Potência"],
-                "TENSÃO": ficha_tecnica["Tensão"],
-                "FREQUÊNCIA": ficha_tecnica["Frequência"],
-                "ROTAÇÃO": ficha_tecnica["Rotação"],
-                "GRAU_DE_PROTEÇÃO": ficha_tecnica["Grau de proteção"],
-                "EFICIÊNCIA": ficha_tecnica["Eficiência"],
-                "ESTADO ATUAL": ficha_tecnica["Estado Atual da Maquina"]
+    for _ in range(3):
+        ficha_tecnica = gerar_ficha_tecnica(images[0].obs, image_datas)
+        try:
+            ficha_tecnica = json.loads(ficha_tecnica[7:-3])
+            print(ficha_tecnica)
+            
+
+            ficha_tecnica = {
+                "NOME": item.title,
+                "TIPO": item.model_type,
+                "IMAGENS": images,
+                "FABRICANTE": ficha_tecnica["Fabricante"],
+                "IDENTIFICAÇÃO": ficha_tecnica["Identificação"],
+                "ESPECIFICACOES_TECNICAS": {
+                    "POTÊNCIA": ficha_tecnica["Potência"],
+                    "TENSÃO": ficha_tecnica["Tensão"],
+                    "FREQUÊNCIA": ficha_tecnica["Frequência"],
+                    "ROTAÇÃO": ficha_tecnica["Rotação"],
+                    "GRAU_DE_PROTEÇÃO": ficha_tecnica["Grau de proteção"],
+                    "EFICIÊNCIA": ficha_tecnica["Eficiência"],
+                    "ESTADO ATUAL": ficha_tecnica["Estado Atual da Maquina"]
+                }
             }
-        }
-    except:
-        ficha_tecnica = {
-            "NOME": item.title,
-            "TIPO": item.model_type,
-            "IMAGENS": images,
-            "FABRICANTE": "desconhecido (tente recarregar a página)",
-            "IDENTIFICAÇÃO": "desconhecido (tente recarregar a página)",
-            "ESPECIFICACOES_TECNICAS": {
-                "POTÊNCIA": "desconhecido (tente recarregar a página)",
-                "TENSÃO": "desconhecido (tente recarregar a página)",
-                "FREQUÊNCIA": "desconhecido (tente recarregar a página)",
-                "ROTAÇÃO": "desconhecido (tente recarregar a página)",
-                "GRAU_DE_PROTEÇÃO": "desconhecido (tente recarregar a página)",
-                "EFICIÊNCIA": "desconhecido (tente recarregar a página)",
-                "ESTADO ATUAL": "desconhecido (tente recarregar a página)"
+            break
+        except:
+            ficha_tecnica = {
+                "NOME": item.title,
+                "TIPO": item.model_type,
+                "IMAGENS": images,
+                "FABRICANTE": "desconhecido (tente recarregar a página)",
+                "IDENTIFICAÇÃO": "desconhecido (tente recarregar a página)",
+                "ESPECIFICACOES_TECNICAS": {
+                    "POTÊNCIA": "desconhecido (tente recarregar a página)",
+                    "TENSÃO": "desconhecido (tente recarregar a página)",
+                    "FREQUÊNCIA": "desconhecido (tente recarregar a página)",
+                    "ROTAÇÃO": "desconhecido (tente recarregar a página)",
+                    "GRAU_DE_PROTEÇÃO": "desconhecido (tente recarregar a página)",
+                    "EFICIÊNCIA": "desconhecido (tente recarregar a página)",
+                    "ESTADO ATUAL": "desconhecido (tente recarregar a página)"
+                }
             }
-        }
 
     return render_template('ficha_tecnica.html', ficha=ficha_tecnica)
 

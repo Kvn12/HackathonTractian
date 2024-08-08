@@ -8,6 +8,7 @@ import requests as req
 import base64
 import os
 import io
+import json
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads/'
@@ -28,18 +29,19 @@ def gerar_ficha_tecnica(obs, image_datas):
         "messages": [
         {
 
-            "role": "system", "content": "Você é um assistente desenvolvido para procurar fichas tecnicas de máquinarios e afins com apenas 3 imagens como input e  ocasionalmente uma breve descrição da marca e do motor como um arquivo json. O arquivo auxiliar tem como nome asset info com o nome, breve descrição do modelo e seu fabricante respectivamente em name, manufacturer e model seguido do caractere ':' e separados por virgula e espaço",
+            "role": "system", "content": "Você é um assistente encarregado de procurar informações e montar fichas tecnicas de maquinários baseando-se em no máximo 3 imagens e um arquivo json do motor. O arquivo auxiliar tem como nome asset_info com o nome,modelo e seu fabricante respectivamente em name, manufacturer e model. As imagens provêm uma melhor apresentação da maquina. Existe tambem uma foto de um sensor que será utilizada para criar um parametro do estado atual do equipamento.",
 
             "role": "user",
             "content": [
             {
-                "type": "text",
-                "text": "retorne a ficha tecnica do modelo correspondente em formato json ,traduzido em portugues especificando a potencia consumida, dimensoes e brevemente descreva as 3 imagens recebidas e o conteudo apresentado no arquivo json"
+                "type" : "text",
+                "text": "preencha a ficha tecnica do modelo correspondente em formato json, traduzido em portugues, caso não seja possivel determinar preencher com desconhecido. A ficha consiste nas seguintes perguntas: Nome: modelo do motor; Fabricante: empresa que fabrica estes modelos; Tipo: Baseado em seu modelo de funcionamento, por exemplo TriFásico; Identificação: Número encontrado na imagem ou no json; Potência: Potência que o motor consome ;Frequência: frequencia de giro do motor apresentada nas imagens ou passada na pesquisa do usuario, o padrão brasileiro é 60Hz; Tensão:tensão, medida em volts, de funcionamento do motor por padrão nesse ramo no brasil são 330v/660v; Rotação: Estimativa da velocidade de giro em rpm do motor; Grau de proteção: especificado em alguma foto do maquinário, é apresentado como um codigo;Eficiencia: apresentado em alguma foto do maquinario como um valor percentual; Estado Atual da maquina: baseado nas imagens e no sensor avaliar o quão danificada se apresenta a maquina para possivelmente evitar acidentes."
+
             },
             
             {
                 "type": "text",
-                "text" : "o arquivo esta no tipo json onde as opcoes name seguido de nome, manufacturer como fornecedor e modelo {obs}"
+                "text" : f"{obs}"
                 
             },
 
@@ -57,8 +59,10 @@ def gerar_ficha_tecnica(obs, image_datas):
         })
 
     response = req.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+    ans = response.json()
+    dados = ans['choices'][0]['message']['content']
 
-    return response['choices'][0]['message']['content'].strip()
+    return dados
 
 class ImageModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -96,7 +100,8 @@ def index():
         for file in request.files.getlist('file'):
             image_datas.append(upload_file(file, title, model_type, obs))
 
-
+        ficha_tecnica = gerar_ficha_tecnica(obs, image_datas)
+        ficha_tecnica = json.loads(ficha_tecnica[7:-3])
 
         # Fetching the images related to the current title and model_type
         images = ImageModel.query.filter_by(title=title, model_type=model_type).all()
@@ -105,17 +110,16 @@ def index():
             "NOME": title,
             "TIPO": model_type,
             "IMAGENS": images,
-            "FABRICANTE": "Extraído do GPT",
-            "MODELO": "Extraído do GPT",
-            "IDENTIFICAÇÃO": "Extraído do GPT",
-            "LOCALIZAÇÃO": "Extraído do GPT",
+            "FABRICANTE": ficha_tecnica["Fabricante"],
+            "IDENTIFICAÇÃO": ficha_tecnica["Identificação"],
             "ESPECIFICACOES_TECNICAS": {
-                "POTÊNCIA": "Extraído do GPT",
-                "TENSÃO": "Extraído do GPT",
-                "FREQUÊNCIA": "Extraído do GPT",
-                "ROTAÇÃO": "Extraído do GPT",
-                "GRAU_DE_PROTEÇÃO": "Extraído do GPT",
-                "EFICIÊNCIA": "Extraído do GPT"
+                "POTÊNCIA": ficha_tecnica["Potência"],
+                "TENSÃO": ficha_tecnica["Tensão"],
+                "FREQUÊNCIA": ficha_tecnica["Frequência"],
+                "ROTAÇÃO": ficha_tecnica["Rotação"],
+                "GRAU_DE_PROTEÇÃO": ficha_tecnica["Grau de proteção"],
+                "EFICIÊNCIA": ficha_tecnica["Eficiência"],
+                "ESTADO ATUAL": ficha_tecnica["Estado Atual da maquina"]
             }
         }
 
@@ -128,23 +132,32 @@ def index():
 def ficha_tecnica(item_id):
     item = ImageModel.query.get_or_404(item_id)
     images = ImageModel.query.filter_by(title=item.title, model_type=item.model_type).all()
+    image_datas = []
+    for img in images:
+        image_datas.append(img.data)
+
+    ficha_tecnica = gerar_ficha_tecnica(images[0].obs, image_datas)
+    ficha_tecnica = json.loads(ficha_tecnica[7:-3])
+    print(ficha_tecnica)
+    
+
     ficha_tecnica = {
-            "NOME": item.title,
-            "TIPO": item.model_type,
-            "IMAGENS": images,
-            "FABRICANTE": "Extraído do GPT",
-            "MODELO": "Extraído do GPT",
-            "IDENTIFICAÇÃO": "Extraído do GPT",
-            "LOCALIZAÇÃO": "Extraído do GPT",
-            "ESPECIFICACOES_TECNICAS": {
-                "POTÊNCIA": "Extraído do GPT",
-                "TENSÃO": "Extraído do GPT",
-                "FREQUÊNCIA": "Extraído do GPT",
-                "ROTAÇÃO": "Extraído do GPT",
-                "GRAU_DE_PROTEÇÃO": "Extraído do GPT",
-                "EFICIÊNCIA": "Extraído do GPT"
-            }
+        "NOME": item.title,
+        "TIPO": item.model_type,
+        "IMAGENS": images,
+        "FABRICANTE": ficha_tecnica["Fabricante"],
+        "IDENTIFICAÇÃO": ficha_tecnica["Identificação"],
+        "ESPECIFICACOES_TECNICAS": {
+            "POTÊNCIA": ficha_tecnica["Potência"],
+            "TENSÃO": ficha_tecnica["Tensão"],
+            "FREQUÊNCIA": ficha_tecnica["Frequência"],
+            "ROTAÇÃO": ficha_tecnica["Rotação"],
+            "GRAU_DE_PROTEÇÃO": ficha_tecnica["Grau de proteção"],
+            "EFICIÊNCIA": ficha_tecnica["Eficiência"],
+            "ESTADO ATUAL": ficha_tecnica["Estado Atual da maquina"]
+        }
     }
+
     return render_template('ficha_tecnica.html', ficha=ficha_tecnica)
 
 
